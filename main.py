@@ -15,15 +15,11 @@ log.setLevel(os.environ.get('LOGGING_LEVEL', 'INFO').upper())
 
 API_TOKEN = os.getenv('API_TOKEN')
 
-router = Router()
-
 # Команда /start
-@router.message(F.text == "/start")
 async def send_welcome(message: types.Message):
     await message.reply("Привет! Я бот для лайков идей мероприятий и регистрации на запланированные мероприятия.")
 
 # Команда /view_ideas — просмотр списка идей мероприятий
-@router.message(F.text == "/view_ideas")
 async def list_ideas(message: types.Message):
     ideas = get_ideas()
     if not ideas:
@@ -40,7 +36,6 @@ async def list_ideas(message: types.Message):
         await message.reply(text)
 
 # Команда /view_events — просмотр списка запланированных мероприятий
-@router.message(F.text == "/view_events")
 async def list_events(message: types.Message):
     events = get_events()
     if not events:
@@ -58,7 +53,6 @@ async def list_events(message: types.Message):
         await message.reply(text)
 
 # Обработка лайков
-@router.message(F.text.startswith('/like_'))
 async def like_event(message: types.Message):
     user_id = message.from_user.id
     event_id = message.text.split('_')[1]
@@ -70,7 +64,6 @@ async def like_event(message: types.Message):
         await message.reply("Вы лайкнули идею!")
 
 # Обработка отмены лайков
-@router.message(F.text.startswith('/unlike_'))
 async def unlike_event(message: types.Message):
     user_id = message.from_user.id
     event_id = message.text.split('_')[1]
@@ -82,7 +75,6 @@ async def unlike_event(message: types.Message):
         await message.reply("Вы ещё не лайкнули эту идею.")
 
 # Обработка регистрации
-@router.message(F.text.startswith('/register_'))
 async def register_event(message: types.Message):
     user_id = message.from_user.id
     event_id = message.text.split('_')[1]
@@ -94,7 +86,6 @@ async def register_event(message: types.Message):
         await message.reply("Вы успешно зарегистрировались на мероприятие!")
 
 # Обработка отмены регистрации
-@router.message(F.text.startswith('/unregister_'))
 async def unregister_event(message: types.Message):
     user_id = message.from_user.id
     event_id = message.text.split('_')[1]
@@ -113,6 +104,14 @@ async def process_event(event):
     Converting an Yandex.Cloud functions event to an update and
     handling tha update.
     """
+    router = Router()
+    router.message.register(send_welcome, F.text == "/start")
+    router.message.register(list_ideas, F.text == "/view_ideas")
+    router.message.register(list_events, F.text == "/view_events")
+    router.message.register(like_event, F.text.startswith('/like_'))
+    router.message.register(unlike_event, F.text.startswith('/unlike_'))
+    router.message.register(register_event, F.text.startswith('/register_'))
+    router.message.register(unregister_event, F.text.startswith('/unregister_'))
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher()
     dp.include_router(router)
