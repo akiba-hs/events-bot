@@ -109,10 +109,6 @@ async def unregister_event(message: types.Message):
     else:
         await message.reply("Вы ещё не зарегистрировались на это мероприятие.")
 
-async def main():
-    dp.include_router(router)
-    await dp.start_polling(bot)
-
 # Functions for Yandex.Cloud
 import json
 
@@ -124,9 +120,7 @@ async def process_event(event, dp: Dispatcher):
     dp.include_router(router)
     update = json.loads(event['body'])
     log.debug('Update: ' + str(update))
-    Bot.set_current(dp.bot)
-    update = types.Update.to_object(update)
-    await dp.process_update(update)
+    await dp.feed_raw_update(bot, update)
 
 async def handler(event, context):
     """Yandex.Cloud functions handler."""
