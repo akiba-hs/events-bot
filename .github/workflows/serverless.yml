@@ -30,8 +30,10 @@ jobs:
           memory: '256Mb'
           entrypoint: 'main.handler'
           environment: |
-            DEBUG=True
-            COUNT=1
+            API_TOKEN=${{ secrets.BOT_TOKEN }}
+            NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}
+            DATABASE_ID=${{ env.DATABASE_ID }}
+            ACTIONS_DATABASE_ID=${{ env.ACTIONS_DATABASE_ID }}
           include: |
             *.py
             requirements.txt
