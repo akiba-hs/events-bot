@@ -1,4 +1,4 @@
-name: Docker Image Publish
+name: Push code to Yandex Cloud Functions
 
 on:
   push:
@@ -17,13 +17,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Fetch secret
-        id: lockbox-secret
-        uses: yc-actions/yc-lockbox@v1
-        with:
-          yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
-          secret-id: e6qu4oagd86p41t0pmsm
 
       - name: Deploy Function
         id: sls-func
