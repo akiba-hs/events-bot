@@ -10,10 +10,11 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения
 load_dotenv()
 
-API_TOKEN = os.getenv('API_TOKEN')
+# Configure logging
+log = logging.getLogger(__name__)
+log.setLevel(os.environ.get('LOGGING_LEVEL', 'INFO').upper())
 
-# Логирование
-logging.basicConfig(level=logging.INFO)
+API_TOKEN = os.getenv('API_TOKEN')
 
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
@@ -112,5 +113,24 @@ async def main():
     dp.include_router(router)
     await dp.start_polling(bot)
 
-if __name__ == '__main__':
-    asyncio.run(main())
+# Functions for Yandex.Cloud
+import json
+
+async def process_event(event, dp: Dispatcher):
+    """
+    Converting an Yandex.Cloud functions event to an update and
+    handling tha update.
+    """
+    dp.include_router(router)
+    update = json.loads(event['body'])
+    log.debug('Update: ' + str(update))
+    Bot.set_current(dp.bot)
+    update = types.Update.to_object(update)
+    await dp.process_update(update)
+
+async def handler(event, context):
+    """Yandex.Cloud functions handler."""
+    if event['httpMethod'] == 'POST':
+        await process_event(event, dp)
+        return {'statusCode': 200, 'body': 'ok'}
+    return {'statusCode': 405}
