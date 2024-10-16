@@ -1,0 +1,39 @@
+name: Docker Image Publish
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy Function
+        id: sls-func
+        uses: yc-actions/yc-sls-function@v2
+        with:
+          yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+          bucket: ${{ secrets.YC_FUNCTIONS_BUCKET }}
+          folder-id: 'b1gnrgn73tvtpcj770eb'
+          function-name: 'akiba-events-bot'
+          runtime: 'python312'
+          memory: '256Mb'
+          entrypoint: 'main.handler'
+          environment: |
+            DEBUG=True
+            COUNT=1
+          include: |
+            *.py
+            requirements.txt
+          tags: |
+            ${{ GITHUB_SHA::6 }}
