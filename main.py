@@ -2,7 +2,6 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher.router import Router
 from aiogram import F
-import asyncio
 from notion import get_ideas, get_events, add_user_action, check_user_action, remove_user_action
 import os
 from dotenv import load_dotenv
@@ -16,9 +15,6 @@ log.setLevel(os.environ.get('LOGGING_LEVEL', 'INFO').upper())
 
 API_TOKEN = os.getenv('API_TOKEN')
 
-# Инициализация бота и диспетчера
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher()
 router = Router()
 
 # Команда /start
@@ -112,11 +108,13 @@ async def unregister_event(message: types.Message):
 # Functions for Yandex.Cloud
 import json
 
-async def process_event(event, dp: Dispatcher):
+async def process_event(event):
     """
     Converting an Yandex.Cloud functions event to an update and
     handling tha update.
     """
+    bot = Bot(token=API_TOKEN)
+    dp = Dispatcher()
     dp.include_router(router)
     update = json.loads(event['body'])
     log.debug('Update: ' + str(update))
@@ -125,6 +123,6 @@ async def process_event(event, dp: Dispatcher):
 async def handler(event, context):
     """Yandex.Cloud functions handler."""
     if event['httpMethod'] == 'POST':
-        await process_event(event, dp)
+        await process_event(event)
         return {'statusCode': 200, 'body': 'ok'}
     return {'statusCode': 405}
