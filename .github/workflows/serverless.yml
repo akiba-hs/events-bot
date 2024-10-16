@@ -35,5 +35,3 @@ jobs:
           include: |
             *.py
             requirements.txt
-          tags: |
-            ${{ GITHUB_SHA::6 }}
