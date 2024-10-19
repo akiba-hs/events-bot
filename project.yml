@@ -1,0 +1,13 @@
+packages:
+    - name: events-bot
+      functions:
+        - name: bot
+          runtime: python:3.11
+          web: raw
+          environment:
+            LOGGING_LEVEL: "${LOGGING_LEVEL}"
+            API_TOKEN: "${API_TOKEN}"
+            NOTION_TOKEN: "${NOTION_TOKEN}"
+            DATABASE_ID: "${DATABASE_ID}"
+            ACTIONS_DATABASE_ID: "${ACTIONS_DATABASE_ID}"
+            LOG_CHAT_ID: "${LOG_CHAT_ID}"

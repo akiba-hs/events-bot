@@ -1,19 +1,10 @@
 import logging
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher.router import Router
 from aiogram import F
 from notion import get_ideas, get_events, add_user_action, check_user_action, remove_user_action
 import os
-from dotenv import load_dotenv
-
-# Загрузка переменных окружения
-load_dotenv()
-
-# Configure logging
-log = logging.getLogger(__name__)
-log.setLevel(os.environ.get('LOGGING_LEVEL', 'INFO').upper())
-
-API_TOKEN = os.getenv('API_TOKEN')
 
 # Команда /start
 async def send_welcome(message: types.Message):
@@ -99,10 +90,10 @@ async def unregister_event(message: types.Message):
 # Functions for Yandex.Cloud
 import json
 
-async def process_event(event):
+async def process_event(bot, event):
     """
-    Converting an Yandex.Cloud functions event to an update and
-    handling tha update.
+    Converting an DigitalOcean `web: raw` functions event to an update and
+    handling the update.
     """
     router = Router()
     router.message.register(send_welcome, F.text == "/start")
@@ -112,16 +103,32 @@ async def process_event(event):
     router.message.register(unlike_event, F.text.startswith('/unlike_'))
     router.message.register(register_event, F.text.startswith('/register_'))
     router.message.register(unregister_event, F.text.startswith('/unregister_'))
-    bot = Bot(token=API_TOKEN)
+
+    
     dp = Dispatcher()
     dp.include_router(router)
-    update = json.loads(event['body'])
-    log.debug('Update: ' + str(update))
+    update = json.loads(event['http']['body'])
+
     await dp.feed_raw_update(bot, update)
 
-async def handler(event, context):
-    """Yandex.Cloud functions handler."""
-    if event['httpMethod'] == 'POST':
-        await process_event(event)
+def main(event):
+    """DigitalOcean functions handler."""
+    API_TOKEN = os.getenv('API_TOKEN')
+    LOG_CHAT_ID = os.getenv('LOG_CHAT_ID')
+    
+    print("i'm alive, event: " + str(event), flush=True)
+    bot = Bot(token=API_TOKEN)
+    asyncio.run(bot.send_message(chat_id=LOG_CHAT_ID, text="Event: "+str(event)))
+
+    # Configure logging
+    log = logging.getLogger(__name__)
+    log.setLevel(os.environ.get('LOGGING_LEVEL', 'INFO').upper())
+
+    if event['http']['method'] == 'POST':
+        try:
+            asyncio.run(process_event(bot, event))
+        except Exception as e:
+            log.error("Exception: " + str(e))
         return {'statusCode': 200, 'body': 'ok'}
+    
     return {'statusCode': 405}
