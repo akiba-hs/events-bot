@@ -1,3 +1,4 @@
 aiogram
+asyncio
 notion-client
 python-dotenv
